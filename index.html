@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Increment Counter</title>
+    <title>Simple Calculator</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -41,11 +41,19 @@
             display: block;
             margin: 20px 0;
             transition: color 0.3s ease-in-out;
+            min-height: 1.2em; /* Prevents layout shift when value changes */
+            word-break: break-all; /* Handles long numbers */
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Two columns */
+            gap: 15px; /* Space between buttons */
+            margin-top: 30px;
         }
         button {
-            background-color: #007bff;
+            background-color: #007bff; /* Primary blue for increment */
             color: white;
-            padding: 12px 25px;
+            padding: 15px 25px;
             border: none;
             border-radius: 6px;
             font-size: 1.1em;
@@ -53,6 +61,7 @@
             outline: none;
             transition: background-color 0.3s ease, transform 0.1s ease;
             box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+            min-width: 120px;
         }
         button:hover {
             background-color: #0056b3;
@@ -63,29 +72,111 @@
             transform: translateY(0);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
+        /* Specific styles for other operation buttons */
+        #sqrt-btn, #percent-btn {
+            background-color: #28a745; /* Success green for operations */
+            box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+        }
+        #sqrt-btn:hover, #percent-btn:hover {
+            background-color: #218838;
+        }
+        #sqrt-btn:active, #percent-btn:active {
+            background-color: #1e7e34;
+        }
+        /* Specific styles for clear button */
+        #clear-btn {
+            background-color: #dc3545; /* Danger red for clear */
+            box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+        }
+        #clear-btn:hover {
+            background-color: #c82333;
+        }
+        #clear-btn:active {
+            background-color: #bd2130;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Simple Counter App</h1>
-        <p>Current Value:</p>
+        <h1>Simple Calculator</h1>
+        <p>Result:</p>
         <span id="counter-value">0</span>
-        <button id="increment-btn">Increment</button>
+        <div class="button-grid">
+            <button id="increment-btn">Increment (+1)</button>
+            <button id="sqrt-btn">Square Root (√)</button>
+            <button id="percent-btn">Percentage (%)</button>
+            <button id="clear-btn">Clear (C)</button>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const incrementBtn = document.querySelector('#increment-btn');
             const counterValueSpan = document.querySelector('#counter-value');
+            const incrementBtn = document.querySelector('#increment-btn');
+            const sqrtBtn = document.querySelector('#sqrt-btn');
+            const percentBtn = document.querySelector('#percent-btn');
+            const clearBtn = document.querySelector('#clear-btn');
 
-            // Initialize counter from the DOM or default to 0
-            let counter = parseInt(counterValueSpan.textContent, 10) || 0;
-            counterValueSpan.textContent = counter; // Ensure it's a number
+            // Initialize counter from the DOM. Use parseFloat to handle potential decimal values.
+            let counter = parseFloat(counterValueSpan.textContent) || 0;
 
-            if (incrementBtn && counterValueSpan) {
+            // Function to update the display
+            const updateDisplay = () => {
+                // If counter is NaN, display 'Error'
+                if (isNaN(counter)) {
+                    counterValueSpan.textContent = 'Error';
+                    return;
+                }
+                // Display integer values plainly. For floats, limit precision and remove trailing zeros.
+                if (Number.isInteger(counter)) {
+                    counterValueSpan.textContent = counter.toString();
+                } else {
+                    // Use toFixed to control decimal places, then parseFloat().toString() to trim unnecessary zeros
+                    let displayedValue = counter.toFixed(8); // Display up to 8 decimal places
+                    counterValueSpan.textContent = parseFloat(displayedValue).toString();
+                }
+            };
+
+            // Initial display update
+            updateDisplay();
+
+            // Event listener for Increment button
+            if (incrementBtn) {
                 incrementBtn.addEventListener('click', () => {
+                    if (isNaN(counter)) counter = 0; // Reset from error state
                     counter++;
-                    counterValueSpan.textContent = counter;
+                    updateDisplay();
+                });
+            }
+
+            // Event listener for Square Root button
+            if (sqrtBtn) {
+                sqrtBtn.addEventListener('click', () => {
+                    if (isNaN(counter)) counter = 0; // Reset from error state
+                    if (counter < 0) {
+                        alert("Cannot calculate square root of a negative number.");
+                        counter = NaN; // Set to NaN to indicate error
+                    } else {
+                        counter = Math.sqrt(counter);
+                    }
+                    updateDisplay();
+                });
+            }
+
+            // Event listener for Percentage button
+            if (percentBtn) {
+                percentBtn.addEventListener('click', () => {
+                    if (isNaN(counter)) counter = 0; // Reset from error state
+                    counter = counter / 100;
+                    updateDisplay();
+                });
+            }
+
+            // Event listener for Clear button
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    counter = 0;
+                    updateDisplay();
                 });
             }
         });
